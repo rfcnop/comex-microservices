@@ -1,16 +1,24 @@
 package br.com.alura.comex.controller;
 
-import br.com.alura.comex.model.Categoria;
-import br.com.alura.comex.service.CategoriaService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.Valid;
+
+import br.com.alura.comex.dto.RequestCategoriaDto;
+import br.com.alura.comex.dto.ResponseCategoriaDto;
+import br.com.alura.comex.service.CategoriaService;
+
 
 @RestController
 @RequestMapping("/api/categorias")
@@ -20,16 +28,22 @@ public class CategoriaController {
     private CategoriaService categoriaService;
 
     @PostMapping
-    public ResponseEntity<Object> cadastra(@RequestBody @Valid RequestCategoriaDto request, BindingResult result){
-
-        if(result.hasErrors()) {
-            String mensagem = result.getFieldError("nome").getDefaultMessage();
+    public ResponseEntity<Object> cadastrar(@RequestBody @Valid RequestCategoriaDto request, BindingResult bindingResult) {
+        if(bindingResult.hasErrors()) {
+            var fieldError = bindingResult.getFieldError("nome");
+            String mensagem = "";
+            if (fieldError != null)
+                mensagem = fieldError.getDefaultMessage();
             return new ResponseEntity<>(mensagem, HttpStatus.BAD_REQUEST);
         }
 
-        Categoria categoria = request.toCategoria();
+        var categoria = request.toCategoria();
         categoriaService.cadastrar(categoria);
+        return new ResponseEntity<>(new ResponseCategoriaDto(categoria), HttpStatus.CREATED);
+    }
 
-        return new ResponseEntity<>(categoria, HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<Page<ResponseCategoriaDto>> listar(@PageableDefault(size = 20) Pageable paginação) {
+        return ResponseEntity.ok(categoriaService.listar(paginação));
     }
 }

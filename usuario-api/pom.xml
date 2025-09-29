@@ -10,7 +10,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>br.com.alura</groupId>
-    <artifactId>produto-api</artifactId>
+    <artifactId>usuario-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <properties>
@@ -31,6 +31,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
         <dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
