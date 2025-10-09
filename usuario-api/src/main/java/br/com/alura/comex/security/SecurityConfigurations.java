@@ -28,8 +28,7 @@ public class SecurityConfigurations {
     		.authorizeHttpRequests(request -> {
     				request.requestMatchers(HttpMethod.POST, "/api/login").permitAll();
                     request.requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll();
-                    request.requestMatchers(HttpMethod.GET, "/api/categorias").permitAll();
-                    request.requestMatchers(HttpMethod.GET, "/api/produtos").permitAll();
+                    request.requestMatchers(HttpMethod.POST, "/api/validate").permitAll();
     				request.anyRequest().authenticated();
     			})
     		.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

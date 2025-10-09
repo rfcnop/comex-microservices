@@ -6,7 +6,9 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 
 import br.com.alura.comex.model.Usuario;
+import br.com.alura.comex.repository.UsuárioRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +23,12 @@ public class TokenService {
     @Value("${api.comex.token.secret}")
     private String tokenSecret;
 
+    @Autowired
+    UsuárioRepository usuaRepository;
+
     public String geraToken(Usuario usuário) {
         var algoritmo = Algorithm.HMAC256(tokenSecret);
-        var instanteDeExpiração = LocalDateTime.now().plusHours(3).toInstant(ZoneOffset.of("-03:00"));
+        var instanteDeExpiração = LocalDateTime.now().plusHours(1).toInstant(ZoneOffset.of("-03:00"));
         try {
             return JWT.create()
                 .withIssuer(ISSUER)
@@ -47,6 +52,22 @@ public class TokenService {
     	}
     	catch (JWTVerificationException exceção) {
     		throw new RuntimeException("Token inválido.", exceção);
+    	}
+    }
+
+    public boolean éVálido(String token) {
+        var algoritmo = Algorithm.HMAC256(tokenSecret);
+    	try {
+    		JWT.require(algoritmo)
+        		.withIssuer(ISSUER)
+    			.build()
+                .verify(token);
+
+            var subject = JWT.decode(token).getSubject();
+            return usuaRepository.findByEmail(subject) != null;
+    	}
+    	catch (JWTVerificationException exceção) {
+    		return false;
     	}
     }
 

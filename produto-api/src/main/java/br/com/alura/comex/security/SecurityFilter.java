@@ -3,14 +3,13 @@ package br.com.alura.comex.security;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import br.com.alura.comex.repository.UsuárioRepository;
-import br.com.alura.comex.service.TokenService;
+import br.com.alura.comex.http.UsuárioClient;
+import br.com.alura.comex.service.AutenticacaoService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,23 +17,32 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
-	
+
 	@Autowired
-	private TokenService tokenService;
-	
+	UsuárioClient usuárioClient;
+
 	@Autowired
-	private UsuárioRepository usuárioRepository;
+	AutenticacaoService autenticacaoService;
 	
 	@Override
 	protected void doFilterInternal(@NonNull HttpServletRequest httpServletRequest, @NonNull HttpServletResponse httpServletResponse, @NonNull FilterChain filterChain) throws ServletException, IOException {
 		var token = pegaToken(httpServletRequest);
 		if (token != null) {
-			var subject = tokenService.subject(token);
-			var usuario = usuárioRepository.findByEmail(subject);
-			var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+			boolean tokenÉVálido = false;
+			try {
+				tokenÉVálido = usuárioClient.tokenÉVálido(token);
+			}
+			catch (Throwable throwable) {
+				tokenÉVálido = autenticacaoService.tokenÉVálido(token);
+			}
+
+			if (tokenÉVálido) {
+				filterChain.doFilter(httpServletRequest, httpServletResponse);	
+				return;
+			}
 		}
-		filterChain.doFilter(httpServletRequest, httpServletResponse);
+		
+		httpServletResponse.setStatus(HttpStatus.FORBIDDEN.value());
 	}
 	
 	private String pegaToken(HttpServletRequest request) {
