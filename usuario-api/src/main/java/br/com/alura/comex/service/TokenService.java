@@ -24,7 +24,7 @@ public class TokenService {
     private String tokenSecret;
 
     @Autowired
-    UsuárioRepository usuaRepository;
+    UsuárioRepository usuárioRepository;
 
     public String geraToken(Usuario usuário) {
         var algoritmo = Algorithm.HMAC256(tokenSecret);
@@ -64,7 +64,7 @@ public class TokenService {
                 .verify(token);
 
             var subject = JWT.decode(token).getSubject();
-            return usuaRepository.findByEmail(subject) != null;
+            return usuárioRepository.findByEmail(subject) != null;
     	}
     	catch (JWTVerificationException exceção) {
     		return false;

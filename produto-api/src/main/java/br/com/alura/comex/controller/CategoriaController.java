@@ -14,10 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-
+import br.com.alura.comex.dto.EventoCategoriaDto;
 import br.com.alura.comex.dto.RequestCategoriaDto;
 import br.com.alura.comex.dto.ResponseCategoriaDto;
 import br.com.alura.comex.service.CategoriaService;
+import br.com.alura.comex.service.KafkaProducerService;
 
 
 @RestController
@@ -26,6 +27,9 @@ public class CategoriaController {
 
     @Autowired
     private CategoriaService categoriaService;
+
+    @Autowired
+    private KafkaProducerService<EventoCategoriaDto> kafkaProducerService;
 
     @PostMapping
     public ResponseEntity<Object> cadastrar(@RequestBody @Valid RequestCategoriaDto request, BindingResult bindingResult) {
@@ -39,6 +43,12 @@ public class CategoriaController {
 
         var categoria = request.toCategoria();
         categoriaService.cadastrar(categoria);
+        try {
+            kafkaProducerService.enviar("CATEGORIA_CADASTRO", categoria.getId().toString(), new EventoCategoriaDto(categoria.getNome()));
+        }
+        catch (Exception exceção) {
+            exceção.printStackTrace();
+        }
         return new ResponseEntity<>(new ResponseCategoriaDto(categoria), HttpStatus.CREATED);
     }
 
